@@ -64,4 +64,7 @@ dependencies {
 
     // AI Engine (ONNX)
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
+
+    // Encrypted storage
+    implementation("androidx.security:security-crypto:1.0.0")
 }
