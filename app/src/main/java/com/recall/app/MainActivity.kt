@@ -9,9 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -28,7 +26,9 @@ import com.recall.app.feature.reminders.RemindersScreen
 import com.recall.app.feature.reminders.RemindersViewModel
 import com.recall.app.feature.reminders.cancelReminder
 import com.recall.app.feature.reminders.scheduleReminder
+import com.recall.app.feature.settings.SettingsScreen
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -38,11 +38,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
-
         setContent {
             RecallTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -56,14 +54,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RecallApp(appPreferences: AppPreferences) {
     val navController = rememberNavController()
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Observe onboarding state from DataStore
     val onboardingDone by appPreferences.isOnboardingComplete.collectAsStateWithLifecycle(initialValue = null)
-
-    // Wait until DataStore emits before deciding start dest
-    if (onboardingDone == null) return   // Blank frame while DataStore loads
+    if (onboardingDone == null) return  // wait for DataStore
 
     val startDest = if (onboardingDone == true) "notes_list" else "onboarding"
 
@@ -76,9 +70,7 @@ fun RecallApp(appPreferences: AppPreferences) {
         composable("onboarding") {
             OnboardingScreen(onComplete = {
                 scope.launch { appPreferences.setOnboardingComplete(true) }
-                navController.navigate("notes_list") {
-                    popUpTo("onboarding") { inclusive = true }
-                }
+                navController.navigate("notes_list") { popUpTo("onboarding") { inclusive = true } }
             })
         }
 
@@ -107,21 +99,23 @@ fun RecallApp(appPreferences: AppPreferences) {
                 onAddReminder = { label, triggerAtMs ->
                     val id = java.util.UUID.randomUUID().toString()
                     remindersViewModel.addReminder(label, triggerAtMs)
-                    scheduleReminder(context, id, triggerAtMs, label)
+                    scheduleReminder(navController.context, id, triggerAtMs, label)
                 },
                 onDeleteReminder = { reminder ->
-                    cancelReminder(context, reminder.id)
+                    cancelReminder(navController.context, reminder.id)
                     remindersViewModel.deleteReminder(reminder)
                 },
                 onBack = { navController.popBackStack() }
             )
         }
 
+        // AI chat — AiViewModel injected inside AskRecallScreen via hiltViewModel()
         composable("ask_recall") {
-            AskRecallScreen(
-                viewModel = notesViewModel,
-                onBack = { navController.popBackStack() }
-            )
+            AskRecallScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable("settings") {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }
