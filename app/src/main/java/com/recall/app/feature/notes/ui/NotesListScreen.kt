@@ -37,7 +37,8 @@ import java.util.*
 fun NotesListScreen(
     viewModel: NotesViewModel,
     onNavigateToEditor: () -> Unit,
-    onNavigateToAskRecall: () -> Unit
+    onNavigateToAskRecall: () -> Unit,
+    onNavigateToReminders: () -> Unit
 ) {
     val notes by viewModel.allNotes.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
@@ -77,7 +78,7 @@ fun NotesListScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = onNavigateToReminders,
                     icon = { Text("⏰") },
                     label = { Text("Reminders", fontSize = 12.sp) }
                 )
