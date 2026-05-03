@@ -17,7 +17,7 @@ import java.util.UUID
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("trigger_at")]
+    indices = [Index("trigger_at"), Index("note_id")]
 )
 data class Reminder(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),

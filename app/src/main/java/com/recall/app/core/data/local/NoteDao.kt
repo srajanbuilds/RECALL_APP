@@ -17,7 +17,7 @@ interface NoteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(note: Note)
 
-    @Query("SELECT * FROM notes JOIN notes_fts ON notes.id = notes_fts.rowid WHERE notes_fts MATCH :query")
+    @Query("SELECT notes.* FROM notes JOIN notes_fts ON notes.id = notes_fts.note_id WHERE notes_fts MATCH :query")
     suspend fun searchNotes(query: String): List<Note>
 
     @Query("SELECT * FROM vector_entries")
