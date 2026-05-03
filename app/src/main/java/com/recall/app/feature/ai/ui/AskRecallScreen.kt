@@ -1,8 +1,5 @@
 package com.recall.app.feature.ai.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,26 +20,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recall.app.core.ui.theme.Accent
 import com.recall.app.core.ui.theme.Border
 import com.recall.app.core.ui.theme.Surface
 import com.recall.app.core.ui.theme.TextMuted
+import com.recall.app.feature.notes.NotesViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 data class ChatMessage(
     val id: String = java.util.UUID.randomUUID().toString(),
     val text: String,
-    val isUser: Boolean,
-    val isThinking: Boolean = false
+    val isUser: Boolean
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AskRecallScreen(
+    viewModel: NotesViewModel,
     onBack: () -> Unit
 ) {
     var inputText by remember { mutableStateOf("") }
@@ -50,7 +47,7 @@ fun AskRecallScreen(
     val messages = remember {
         mutableStateListOf(
             ChatMessage(
-                text = "Hi! I'm Recall AI. Ask me anything about your notes. Everything runs privately on your device. 🔒",
+                text = "Hi! I'm Recall AI. Ask me anything about your notes — I'll search them for you instantly. Everything stays private on your device. 🔒",
                 isUser = false
             )
         )
@@ -66,22 +63,30 @@ fun AskRecallScreen(
         isThinking = true
 
         scope.launch {
-            // Scroll to bottom
             listState.animateScrollToItem(messages.size - 1)
-            delay(1200) // Simulate on-device inference
-            isThinking = false
 
-            // Placeholder RAG response — real LLM response will come from llama.cpp in Phase 3
-            val response = when {
-                query.contains("what", ignoreCase = true) || query.contains("tell", ignoreCase = true) ->
-                    "Based on your notes, I found relevant content about this topic. The full AI inference engine (Gemma 2B) will give complete answers once the model is downloaded."
-                query.contains("remind", ignoreCase = true) ->
-                    "I can see you have some notes that mention reminders. Once the AI model is active, I'll be able to surface exact quotes and summaries."
-                query.contains("summary", ignoreCase = true) || query.contains("summarize", ignoreCase = true) ->
-                    "I've scanned your notes and found ${(2..8).random()} relevant entries. Full summarization will be available once Gemma 2B is loaded on-device."
-                else ->
-                    "I searched through all your notes for \"$query\". The embedding search is running on-device. Download the AI model to unlock full natural language answers."
+            // Real FTS4 search through user notes
+            val relevantNotes = viewModel.searchForContext(query)
+
+            delay(600) // brief pause to feel natural
+
+            val response = if (relevantNotes.isEmpty()) {
+                "I couldn't find anything in your notes about \"$query\". Try writing a note about it first!"
+            } else {
+                val sb = StringBuilder()
+                sb.append("I found ${relevantNotes.size} relevant note${if (relevantNotes.size > 1) "s" else ""}:\n\n")
+                relevantNotes.take(3).forEachIndexed { i, note ->
+                    sb.append("📄 **${note.title.ifEmpty { "Untitled" }}**\n")
+                    val preview = note.body.take(200).trimEnd()
+                    sb.append("${if (note.body.length > 200) "$preview…" else preview}\n\n")
+                }
+                if (relevantNotes.size > 3) {
+                    sb.append("…and ${relevantNotes.size - 3} more note${if (relevantNotes.size - 3 > 1) "s" else ""}.")
+                }
+                sb.toString().trimEnd()
             }
+
+            isThinking = false
             messages.add(ChatMessage(text = response, isUser = false))
             listState.animateScrollToItem(messages.size - 1)
         }
@@ -111,11 +116,7 @@ fun AskRecallScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Text(
-                                "On-device AI • Private",
-                                fontSize = 11.sp,
-                                color = TextMuted
-                            )
+                            Text("On-device • Private", fontSize = 11.sp, color = TextMuted)
                         }
                     }
                 },
@@ -124,9 +125,7 @@ fun AskRecallScreen(
                         Text("←", color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
@@ -163,13 +162,13 @@ fun AskRecallScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(if (inputText.isNotBlank()) Accent else Surface),
+                            .background(if (inputText.isNotBlank() && !isThinking) Accent else Surface),
                         enabled = inputText.isNotBlank() && !isThinking
                     ) {
                         Icon(
                             Icons.Filled.Send,
                             contentDescription = "Send",
-                            tint = if (inputText.isNotBlank()) Color.White else TextMuted
+                            tint = if (inputText.isNotBlank() && !isThinking) Color.White else TextMuted
                         )
                     }
                 }
@@ -189,7 +188,7 @@ fun AskRecallScreen(
                 ChatBubble(message = message)
             }
             if (isThinking) {
-                item {
+                item(key = "thinking") {
                     ThinkingBubble()
                 }
             }
@@ -199,13 +198,13 @@ fun AskRecallScreen(
 
 @Composable
 fun ChatBubble(message: ChatMessage) {
-    val alignment = if (message.isUser) Alignment.End else Alignment.Start
     val bgColor = if (message.isUser) Accent else Surface
     val textColor = if (message.isUser) Color.White else MaterialTheme.colorScheme.onSurface
     val shape = if (message.isUser)
         RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp)
     else
         RoundedCornerShape(20.dp, 20.dp, 20.dp, 4.dp)
+    val alignment = if (message.isUser) Alignment.End else Alignment.Start
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -232,22 +231,14 @@ fun ThinkingBubble() {
             dotCount = (dotCount % 3) + 1
         }
     }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start
-    ) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 4.dp))
                 .background(Surface)
                 .padding(horizontal = 20.dp, vertical = 14.dp)
         ) {
-            Text(
-                text = "●".repeat(dotCount),
-                color = TextMuted,
-                fontSize = 14.sp,
-                letterSpacing = 4.sp
-            )
+            Text("●".repeat(dotCount), color = TextMuted, fontSize = 14.sp, letterSpacing = 4.sp)
         }
     }
 }

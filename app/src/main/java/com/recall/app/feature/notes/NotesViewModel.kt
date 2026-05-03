@@ -32,7 +32,6 @@ class NotesViewModel(
                 try {
                     dao.searchNotes("$query*")
                 } catch (e: Exception) {
-                    // Fallback to in-memory filter if FTS fails
                     allNotes.value.filter {
                         it.title.contains(query, ignoreCase = true) ||
                         it.body.contains(query, ignoreCase = true)
@@ -42,17 +41,42 @@ class NotesViewModel(
         }
     }
 
-    fun saveNote(title: String, content: String, isPrivate: Boolean = false) {
+    /**
+     * Search notes and return the results directly (for AI chat RAG).
+     */
+    suspend fun searchForContext(query: String): List<Note> {
+        return try {
+            dao.searchNotes("$query*").take(5)
+        } catch (e: Exception) {
+            allNotes.value
+                .filter {
+                    it.title.contains(query, ignoreCase = true) ||
+                    it.body.contains(query, ignoreCase = true)
+                }
+                .take(5)
+        }
+    }
+
+    fun saveNote(
+        title: String,
+        content: String,
+        noteId: String? = null,
+        isPrivate: Boolean = false
+    ) {
         viewModelScope.launch {
+            val existingNote = if (noteId != null) {
+                allNotes.value.find { it.id == noteId }
+            } else null
+
             val note = Note(
+                id = existingNote?.id ?: java.util.UUID.randomUUID().toString(),
                 title = title,
                 body = content,
                 isPrivate = isPrivate,
-                createdAt = System.currentTimeMillis(),
+                createdAt = existingNote?.createdAt ?: System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )
 
-            // Generate embeddings for RAG
             val chunks = embeddingEngine.chunkText(content)
             val vectorEntries = chunks.mapIndexed { index, chunk ->
                 val floatEmbedding = embeddingEngine.generateEmbedding(chunk)
@@ -60,7 +84,6 @@ class NotesViewModel(
                     .allocate(floatEmbedding.size * 4)
                     .order(java.nio.ByteOrder.LITTLE_ENDIAN)
                 floatEmbedding.forEach { byteBuffer.putFloat(it) }
-
                 VectorEntry(
                     noteId = note.id,
                     chunkIndex = index,
@@ -68,9 +91,18 @@ class NotesViewModel(
                     embedding = byteBuffer.array()
                 )
             }
-
             dao.updateNoteAndEmbeddings(note, vectorEntries)
         }
+    }
+
+    fun deleteNote(noteId: String) {
+        viewModelScope.launch {
+            dao.deleteNote(noteId)
+        }
+    }
+
+    fun getNoteById(noteId: String): Note? {
+        return allNotes.value.find { it.id == noteId }
     }
 }
 

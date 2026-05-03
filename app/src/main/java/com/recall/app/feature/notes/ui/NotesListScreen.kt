@@ -1,7 +1,9 @@
 package com.recall.app.feature.notes.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,12 +26,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.recall.app.feature.notes.NotesViewModel
 import com.recall.app.core.data.model.Note
 import com.recall.app.core.ui.theme.Accent
 import com.recall.app.core.ui.theme.Border
 import com.recall.app.core.ui.theme.Surface
 import com.recall.app.core.ui.theme.TextMuted
+import com.recall.app.feature.notes.NotesViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,6 +40,7 @@ import java.util.*
 fun NotesListScreen(
     viewModel: NotesViewModel,
     onNavigateToEditor: () -> Unit,
+    onNavigateToEditNote: (noteId: String) -> Unit,
     onNavigateToAskRecall: () -> Unit,
     onNavigateToReminders: () -> Unit
 ) {
@@ -48,9 +52,7 @@ fun NotesListScreen(
     val displayNotes = if (searchQuery.isNotBlank()) searchResults else notes
 
     LaunchedEffect(searchQuery) {
-        if (searchQuery.isNotBlank()) {
-            viewModel.search(searchQuery)
-        }
+        if (searchQuery.isNotBlank()) viewModel.search(searchQuery)
     }
 
     Scaffold(
@@ -113,15 +115,13 @@ fun NotesListScreen(
                         letterSpacing = 2.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                }
-                if (!isSearching) {
                     IconButton(onClick = { isSearching = true }) {
                         Icon(Icons.Filled.Search, contentDescription = "Search", tint = TextMuted)
                     }
                 }
             }
 
-            // Live search bar
+            // Search bar
             AnimatedVisibility(visible = isSearching) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -133,9 +133,7 @@ fun NotesListScreen(
                         onValueChange = { searchQuery = it },
                         placeholder = { Text("Search notes...", color = TextMuted, fontSize = 15.sp) },
                         textStyle = TextStyle(fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface),
-                        leadingIcon = {
-                            Icon(Icons.Filled.Search, contentDescription = null, tint = TextMuted)
-                        },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = TextMuted) },
                         trailingIcon = {
                             if (searchQuery.isNotBlank()) {
                                 IconButton(onClick = { searchQuery = "" }) {
@@ -155,10 +153,7 @@ fun NotesListScreen(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.weight(1f)
                     )
-                    TextButton(onClick = {
-                        isSearching = false
-                        searchQuery = ""
-                    }) {
+                    TextButton(onClick = { isSearching = false; searchQuery = "" }) {
                         Text("Cancel", color = Accent, fontSize = 15.sp)
                     }
                 }
@@ -174,29 +169,75 @@ fun NotesListScreen(
                 )
             }
 
-            // Notes list or empty states
-            if (displayNotes.isEmpty() && searchQuery.isBlank()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("📝", fontSize = 48.sp)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("No notes yet", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text("Tap + to create your first note", color = TextMuted, fontSize = 14.sp)
+            when {
+                displayNotes.isEmpty() && searchQuery.isBlank() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("📝", fontSize = 48.sp)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text("No notes yet", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text("Tap + to create your first note", color = TextMuted, fontSize = 14.sp)
+                        }
                     }
                 }
-            } else if (displayNotes.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🔍", fontSize = 40.sp)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("No results for \"$searchQuery\"", color = TextMuted, fontSize = 15.sp)
+                displayNotes.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("🔍", fontSize = 40.sp)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text("No results for \"$searchQuery\"", color = TextMuted, fontSize = 15.sp)
+                        }
                     }
                 }
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(displayNotes, key = { it.id }) { note ->
-                        NoteCard(note = note, onClick = { onNavigateToEditor() })
+                else -> {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(displayNotes, key = { it.id }) { note ->
+                            SwipeToDeleteNoteCard(
+                                note = note,
+                                onClick = { onNavigateToEditNote(note.id) },
+                                onDelete = { viewModel.deleteNote(note.id) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SwipeToDeleteNoteCard(note: Note, onClick: () -> Unit, onDelete: () -> Unit) {
+    var showDeleteOverlay by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        NoteCard(
+            note = note,
+            onClick = { if (showDeleteOverlay) showDeleteOverlay = false else onClick() },
+            onLongClick = { showDeleteOverlay = !showDeleteOverlay }
+        )
+        if (showDeleteOverlay) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color(0xCC1a0000), RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = { onDelete(); showDeleteOverlay = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C))
+                    ) {
+                        Icon(Icons.Filled.Delete, contentDescription = null, tint = Color.White)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Delete", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                    TextButton(onClick = { showDeleteOverlay = false }) {
+                        Text("Cancel", color = Color.White)
                     }
                 }
             }
@@ -215,10 +256,11 @@ fun formatTimestamp(timestamp: Long): String {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NoteCard(note: Note, onClick: () -> Unit) {
+fun NoteCard(note: Note, onClick: () -> Unit, onLongClick: () -> Unit = {}) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
         color = Surface,
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Border)

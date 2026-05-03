@@ -50,12 +50,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Request notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
-
         setContent {
             RecallTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -82,14 +79,19 @@ fun RecallApp(
         composable("onboarding") {
             OnboardingScreen(onComplete = {
                 modelPrefs.isOnboardingComplete = true
-                navController.navigate("notes_list") { popUpTo("onboarding") { inclusive = true } }
+                navController.navigate("notes_list") {
+                    popUpTo("onboarding") { inclusive = true }
+                }
             })
         }
 
         composable("notes_list") {
             NotesListScreen(
                 viewModel = notesViewModel,
-                onNavigateToEditor = { navController.navigate("editor") },
+                onNavigateToEditor = { navController.navigate("editor/new") },
+                onNavigateToEditNote = { noteId ->
+                    navController.navigate("editor/${noteId}")
+                },
                 onNavigateToAskRecall = {
                     if (modelPrefs.isModelDownloaded) navController.navigate("ask_recall")
                     else navController.navigate("model_download")
@@ -98,9 +100,12 @@ fun RecallApp(
             )
         }
 
-        composable("editor") {
+        composable("editor/{noteId}") { backStackEntry ->
+            val rawId = backStackEntry.arguments?.getString("noteId") ?: "new"
+            val noteId = if (rawId == "new") null else rawId
             NoteEditorScreen(
                 viewModel = notesViewModel,
+                noteId = noteId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -109,8 +114,9 @@ fun RecallApp(
             RemindersScreen(
                 reminders = reminders,
                 onAddReminder = { label, triggerAtMs ->
+                    val id = java.util.UUID.randomUUID().toString()
                     remindersViewModel.addReminder(label, triggerAtMs)
-                    scheduleReminder(context, java.util.UUID.randomUUID().toString(), triggerAtMs, label)
+                    scheduleReminder(context, id, triggerAtMs, label)
                 },
                 onDeleteReminder = { reminder ->
                     cancelReminder(context, reminder.id)
@@ -124,14 +130,19 @@ fun RecallApp(
             ModelDownloadScreen(
                 onDownloadComplete = {
                     modelPrefs.isModelDownloaded = true
-                    navController.navigate("ask_recall") { popUpTo("model_download") { inclusive = true } }
+                    navController.navigate("ask_recall") {
+                        popUpTo("model_download") { inclusive = true }
+                    }
                 },
                 onCancel = { navController.popBackStack() }
             )
         }
 
         composable("ask_recall") {
-            AskRecallScreen(onBack = { navController.popBackStack() })
+            AskRecallScreen(
+                viewModel = notesViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }
