@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recall — AI Notes App</title>
+  <meta name="description" content="Recall is a private, offline AI notes app. Your notes never leave your phone." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d10; --surface: #18181f; --border: #2a2a38;
+      --accent: #8b5cf6; --text: #f1f1f1; --muted: #9191a4;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+    header { max-width: 900px; margin: 0 auto; padding: 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo-row { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: white; }
+    header h1 { font-size: 20px; font-weight: 700; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 20px; transition: color 0.2s; }
+    nav a:hover { color: white; }
+    hero { display: block; text-align: center; padding: 80px 24px 60px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); color: #c4b5fd; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; margin-bottom: 28px; }
+    .hero h2 { font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; background: linear-gradient(135deg, #fff 30%, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: var(--muted); max-width: 520px; margin: 0 auto 40px; line-height: 1.7; }
+    .cta { display: inline-flex; align-items: center; gap: 10px; background: var(--accent); color: white; padding: 14px 28px; border-radius: 14px; font-size: 16px; font-weight: 600; text-decoration: none; transition: opacity 0.2s; }
+    .cta:hover { opacity: 0.85; }
+    .features { max-width: 900px; margin: 60px auto; padding: 0 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .feat { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; }
+    .feat .icon { font-size: 32px; margin-bottom: 16px; }
+    .feat h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .feat p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .links { text-align: center; padding: 40px 24px; }
+    .links a { color: var(--muted); text-decoration: none; font-size: 14px; margin: 0 16px; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+    .links a:hover { color: white; }
+    footer { text-align: center; color: var(--muted); font-size: 13px; padding: 32px 24px; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-row">
+      <div class="logo">R</div>
+      <h1>Recall</h1>
+    </div>
+    <nav>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </nav>
+  </header>
+
+  <hero>
+    <div style="text-align:center; padding: 80px 24px 60px;">
+      <div class="hero-badge">✨ 100% Private &nbsp;·&nbsp; No Accounts &nbsp;·&nbsp; No Servers</div>
+      <div class="hero h2" style="font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; background: linear-gradient(135deg, #fff 30%, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Notes that remember.<br/>An AI that never forgets.</div>
+      <p style="font-size: 18px; color: var(--muted); max-width: 520px; margin: 0 auto 40px; line-height: 1.7;">Recall is an AI-powered notes app that runs entirely on your device. Ask questions about your notes, search instantly, and keep everything private.</p>
+      <a class="cta" href="#">Coming to Google Play →</a>
+    </div>
+  </hero>
+
+  <div class="features">
+    <div class="feat">
+      <div class="icon">🔒</div>
+      <h3>100% Private</h3>
+      <p>Everything stays on your phone. No accounts, no cloud, no tracking. Your notes are yours alone.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">✨</div>
+      <h3>Ask Anything</h3>
+      <p>Chat with your notes using a powerful AI that runs on your device. Ask questions, get summaries.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">⚡</div>
+      <h3>Instant Search</h3>
+      <p>Full-text search powered by FTS4. Find any note in milliseconds, even with thousands of entries.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">🌙</div>
+      <h3>Beautiful Design</h3>
+      <p>Sleek dark-mode interface built with Jetpack Compose. Designed to feel premium and fast.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">📴</div>
+      <h3>Works Offline</h3>
+      <p>After the initial AI model download, Recall works completely offline. No internet required.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">🆓</div>
+      <h3>Free Forever</h3>
+      <p>No subscriptions, no paywalls, no limits. Open source and free to use forever.</p>
+    </div>
+  </div>
+
+  <div class="links">
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="https://github.com/srajanbuilds/RECALL_APP">GitHub</a>
+  </div>
+
+  <footer>
+    <p>© 2026 Recall AI Notes &nbsp;·&nbsp; Built with ❤️ — zero tracking, zero BS.</p>
+  </footer>
+</body>
+</html>
