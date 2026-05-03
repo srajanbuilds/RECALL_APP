@@ -2,25 +2,31 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Required for one-time AI model download -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Reminders: restore alarms after reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <!-- Required for scheduling exact reminders -->
+    <!-- Reminders: exact scheduling -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
-    <!-- Required to show reminder notifications (Android 13+) -->
+    <!-- Reminders: show notification -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Required to receive alarms when device is idle -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Voice input -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Biometric lock -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+    <!-- NOT declared: INTERNET, WAKE_LOCK, READ/WRITE_EXTERNAL_STORAGE, READ_CONTACTS, ACCESS_FINE_LOCATION -->
 
     <application
-        android:allowBackup="true"
+        android:name=".RecallApplication"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="Recall"
+        android:label="@string/app_name"
         android:description="@string/app_description"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
@@ -40,7 +46,11 @@
         <!-- Reminder alarm receiver -->
         <receiver
             android:name=".feature.reminders.ReminderReceiver"
-            android:exported="false" />
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

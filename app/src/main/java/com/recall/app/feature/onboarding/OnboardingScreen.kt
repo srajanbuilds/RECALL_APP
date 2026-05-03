@@ -55,19 +55,8 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(page.gradient)
-            )
+            .background(com.recall.app.core.ui.theme.Background)
     ) {
-        // Skip button
-        TextButton(
-            onClick = onComplete,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-        ) {
-            Text("Skip", color = TextMuted, fontSize = 14.sp)
-        }
 
         Column(
             modifier = Modifier

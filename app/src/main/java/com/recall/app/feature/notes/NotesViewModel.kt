@@ -1,22 +1,27 @@
 package com.recall.app.feature.notes
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.recall.app.core.ai.EmbeddingEngine
+import com.recall.app.core.ai.IndexNoteWorker
 import com.recall.app.core.data.local.NoteDao
 import com.recall.app.core.data.model.Note
 import com.recall.app.core.data.model.VectorEntry
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class NotesViewModel(
+@HiltViewModel
+class NotesViewModel @Inject constructor(
+    application: Application,
     private val dao: NoteDao,
     private val embeddingEngine: EmbeddingEngine
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     val allNotes: StateFlow<List<Note>> = dao.getAllNotes()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -26,95 +31,55 @@ class NotesViewModel(
 
     fun search(query: String) {
         viewModelScope.launch {
-            _searchResults.value = if (query.isBlank()) {
-                emptyList()
-            } else {
-                try {
-                    dao.searchNotes("$query*")
-                } catch (e: Exception) {
-                    allNotes.value.filter {
-                        it.title.contains(query, ignoreCase = true) ||
-                        it.body.contains(query, ignoreCase = true)
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Search notes and return the results directly (for AI chat RAG).
-     */
-    suspend fun searchForContext(query: String): List<Note> {
-        return try {
-            dao.searchNotes("$query*").take(5)
-        } catch (e: Exception) {
-            allNotes.value
-                .filter {
+            _searchResults.value = if (query.isBlank()) emptyList()
+            else try {
+                dao.searchNotes("$query*")
+            } catch (e: Exception) {
+                allNotes.value.filter {
                     it.title.contains(query, ignoreCase = true) ||
                     it.body.contains(query, ignoreCase = true)
                 }
-                .take(5)
+            }
         }
     }
 
-    fun saveNote(
-        title: String,
-        content: String,
-        noteId: String? = null,
-        isPrivate: Boolean = false
-    ) {
-        viewModelScope.launch {
-            val existingNote = if (noteId != null) {
-                allNotes.value.find { it.id == noteId }
-            } else null
+    /** Used by AI chat for real note context (FTS4 RAG retrieval). */
+    suspend fun searchForContext(query: String): List<Note> =
+        try { dao.searchNotes("$query*").filter { !it.isPrivate }.take(5) }
+        catch (e: Exception) {
+            allNotes.value.filter {
+                !it.isPrivate && (
+                    it.title.contains(query, ignoreCase = true) ||
+                    it.body.contains(query, ignoreCase = true)
+                )
+            }.take(5)
+        }
 
+    fun saveNote(title: String, content: String, noteId: String? = null, isPrivate: Boolean = false) {
+        viewModelScope.launch {
+            val existing = noteId?.let { id -> allNotes.value.find { it.id == id } }
             val note = Note(
-                id = existingNote?.id ?: java.util.UUID.randomUUID().toString(),
+                id = existing?.id ?: java.util.UUID.randomUUID().toString(),
                 title = title,
                 body = content,
                 isPrivate = isPrivate,
-                createdAt = existingNote?.createdAt ?: System.currentTimeMillis(),
+                createdAt = existing?.createdAt ?: System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )
 
-            val chunks = embeddingEngine.chunkText(content)
-            val vectorEntries = chunks.mapIndexed { index, chunk ->
-                val floatEmbedding = embeddingEngine.generateEmbedding(chunk)
-                val byteBuffer = java.nio.ByteBuffer
-                    .allocate(floatEmbedding.size * 4)
-                    .order(java.nio.ByteOrder.LITTLE_ENDIAN)
-                floatEmbedding.forEach { byteBuffer.putFloat(it) }
-                VectorEntry(
-                    noteId = note.id,
-                    chunkIndex = index,
-                    chunkText = chunk,
-                    embedding = byteBuffer.array()
-                )
+            // Private notes: insert into Room but NEVER generate embeddings (enforced here)
+            dao.insertNote(note)
+
+            if (!isPrivate) {
+                // Enqueue background indexing via WorkManager
+                IndexNoteWorker.enqueue(getApplication(), note.id)
             }
-            dao.updateNoteAndEmbeddings(note, vectorEntries)
         }
     }
 
     fun deleteNote(noteId: String) {
-        viewModelScope.launch {
-            dao.deleteNote(noteId)
-        }
+        viewModelScope.launch { dao.deleteNote(noteId) }
     }
 
-    fun getNoteById(noteId: String): Note? {
-        return allNotes.value.find { it.id == noteId }
-    }
-}
-
-class NotesViewModelFactory(
-    private val dao: NoteDao,
-    private val embeddingEngine: EmbeddingEngine
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(NotesViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return NotesViewModel(dao, embeddingEngine) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
+    fun getNoteById(noteId: String): Note? = allNotes.value.find { it.id == noteId }
 }

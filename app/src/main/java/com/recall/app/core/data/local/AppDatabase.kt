@@ -1,6 +1,8 @@
 package com.recall.app.core.data.local
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.recall.app.core.data.model.Folder
 import com.recall.app.core.data.model.Note
@@ -21,4 +23,17 @@ import com.recall.app.core.data.model.VectorEntry
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
+
+    companion object {
+        @Volatile private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "recall-db"
+                ).fallbackToDestructiveMigration().build().also { INSTANCE = it }
+            }
+    }
 }

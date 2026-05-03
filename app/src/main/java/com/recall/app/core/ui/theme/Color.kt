@@ -2,10 +2,12 @@ package com.recall.app.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Background = Color(0xFF121414)
-val Surface = Color(0xFF1A1C1C)
-val Border = Color(0xFF333535)
-val Accent = Color(0xFF7C6FF7)
-val TextPrimary = Color(0xFFE2E2E2)
-val TextMuted = Color(0xFFC8C4D6)
-val Destructive = Color(0xFFFFB4AB)
+// ── Spec-exact colour palette (Section 8) ─────────────────────────
+val Background  = Color(0xFF0D0D0D)   // App background
+val Surface     = Color(0xFF1A1A1A)   // Cards, sheets
+val Border      = Color(0xFF2A2A2A)   // Dividers, card outlines
+val Accent      = Color(0xFF7C6FF7)   // FAB, active states, AI elements
+val TextPrimary = Color(0xFFF0F0F0)   // Body text
+val TextMuted   = Color(0xFF888888)   // Metadata, placeholder, muted labels
+val Destructive = Color(0xFFFF4444)   // Delete actions
+val Archive     = Color(0xFF3A3A3A)   // Archived note tint

@@ -10,16 +10,17 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Accent,
-    background = Background,
-    surface = Surface,
-    onPrimary = Color(0xFFFFFFFF),
-    onBackground = TextPrimary,
-    onSurface = TextPrimary,
+private val RecallDarkColorScheme = darkColorScheme(
+    primary          = Accent,
+    background       = Background,
+    surface          = Surface,
+    surfaceVariant   = Archive,
+    onPrimary        = Color.White,
+    onBackground     = TextPrimary,
+    onSurface        = TextPrimary,
     onSurfaceVariant = TextMuted,
-    outline = Border,
-    error = Destructive
+    outline          = Border,
+    error            = Destructive
 )
 
 @Composable
@@ -29,12 +30,15 @@ fun RecallTheme(content: @Composable () -> Unit) {
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = Background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            window.navigationBarColor = Background.toArgb()
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
+            }
         }
     }
-
     MaterialTheme(
-        colorScheme = DarkColorScheme,
+        colorScheme = RecallDarkColorScheme,
         content = content
     )
 }
