@@ -34,11 +34,15 @@ class NotesViewModel(
             // Generate embeddings for RAG
             val chunks = embeddingEngine.chunkText(content)
             val vectorEntries = chunks.mapIndexed { index, chunk ->
+                val floatEmbedding = embeddingEngine.generateEmbedding(chunk)
+                val byteBuffer = java.nio.ByteBuffer.allocate(floatEmbedding.size * 4).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+                floatEmbedding.forEach { byteBuffer.putFloat(it) }
+                
                 VectorEntry(
                     noteId = note.id,
                     chunkIndex = index,
-                    textChunk = chunk,
-                    embedding = embeddingEngine.generateEmbedding(chunk).joinToString(",")
+                    chunkText = chunk,
+                    embedding = byteBuffer.array()
                 )
             }
             
