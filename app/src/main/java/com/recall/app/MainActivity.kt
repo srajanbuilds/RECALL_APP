@@ -13,13 +13,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
+import com.recall.app.core.ai.EmbeddingEngine
 import com.recall.app.core.data.local.AppDatabase
 import com.recall.app.core.ui.theme.RecallTheme
+import com.recall.app.feature.ai.ui.AskRecallScreen
+import com.recall.app.feature.ai.ui.ModelDownloadScreen
 import com.recall.app.feature.notes.NotesViewModel
 import com.recall.app.feature.notes.NotesViewModelFactory
 import com.recall.app.feature.notes.ui.NoteEditorScreen
 import com.recall.app.feature.notes.ui.NotesListScreen
-import com.recall.app.core.ai.EmbeddingEngine
 
 class MainActivity : ComponentActivity() {
 
@@ -62,7 +64,7 @@ fun RecallAppNavigation(viewModel: NotesViewModel) {
             NotesListScreen(
                 viewModel = viewModel,
                 onNavigateToEditor = { navController.navigate("editor") },
-                onNavigateToAskRecall = { navController.navigate("model_download") }
+                onNavigateToAskRecall = { navController.navigate("ask_recall") }
             )
         }
         composable("editor") {
@@ -71,9 +73,14 @@ fun RecallAppNavigation(viewModel: NotesViewModel) {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+        composable("ask_recall") {
+            AskRecallScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
         composable("model_download") {
-            com.recall.app.feature.ai.ui.ModelDownloadScreen(
-                onDownloadComplete = { /* Phase 3: Transition to AI Chat */ },
+            ModelDownloadScreen(
+                onDownloadComplete = { navController.navigate("ask_recall") },
                 onCancel = { navController.popBackStack() }
             )
         }
