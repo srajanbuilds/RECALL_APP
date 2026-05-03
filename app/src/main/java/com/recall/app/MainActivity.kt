@@ -19,6 +19,7 @@ import com.recall.app.feature.notes.NotesViewModel
 import com.recall.app.feature.notes.NotesViewModelFactory
 import com.recall.app.feature.notes.ui.NoteEditorScreen
 import com.recall.app.feature.notes.ui.NotesListScreen
+import com.recall.app.core.ai.EmbeddingEngine
 
 class MainActivity : ComponentActivity() {
 
@@ -29,8 +30,12 @@ class MainActivity : ComponentActivity() {
         ).fallbackToDestructiveMigration().build()
     }
 
+    private val embeddingEngine by lazy {
+        EmbeddingEngine(applicationContext)
+    }
+
     private val viewModel: NotesViewModel by viewModels {
-        NotesViewModelFactory(db.noteDao())
+        NotesViewModelFactory(db.noteDao(), embeddingEngine)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

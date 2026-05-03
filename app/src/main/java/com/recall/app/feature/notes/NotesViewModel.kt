@@ -10,7 +10,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class NotesViewModel(private val dao: NoteDao) : ViewModel() {
+import com.recall.app.core.ai.EmbeddingEngine
+import com.recall.app.core.data.model.VectorEntry
+
+class NotesViewModel(
+    private val dao: NoteDao,
+    private val embeddingEngine: EmbeddingEngine
+) : ViewModel() {
     
     val allNotes: StateFlow<List<Note>> = dao.getAllNotes()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -24,17 +30,32 @@ class NotesViewModel(private val dao: NoteDao) : ViewModel() {
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )
-            dao.insertNote(note)
-            // Embedding generation will be added in Phase 2 logic
+            
+            // Generate embeddings for RAG
+            val chunks = embeddingEngine.chunkText(content)
+            val vectorEntries = chunks.mapIndexed { index, chunk ->
+                VectorEntry(
+                    noteId = note.id,
+                    chunkIndex = index,
+                    textChunk = chunk,
+                    embedding = embeddingEngine.generateEmbedding(chunk).joinToString(",")
+                )
+            }
+            
+            // Transactional update
+            dao.updateNoteAndEmbeddings(note, vectorEntries)
         }
     }
 }
 
-class NotesViewModelFactory(private val dao: NoteDao) : ViewModelProvider.Factory {
+class NotesViewModelFactory(
+    private val dao: NoteDao,
+    private val embeddingEngine: EmbeddingEngine
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NotesViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return NotesViewModel(dao) as T
+            return NotesViewModel(dao, embeddingEngine) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
