@@ -57,13 +57,19 @@ fun RecallAppNavigation(viewModel: NotesViewModel) {
             NotesListScreen(
                 viewModel = viewModel,
                 onNavigateToEditor = { navController.navigate("editor") },
-                onNavigateToAskRecall = { /* Phase 3 */ }
+                onNavigateToAskRecall = { navController.navigate("model_download") }
             )
         }
         composable("editor") {
             NoteEditorScreen(
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("model_download") {
+            com.recall.app.feature.ai.ui.ModelDownloadScreen(
+                onDownloadComplete = { /* Phase 3: Transition to AI Chat */ },
+                onCancel = { navController.popBackStack() }
             )
         }
     }
