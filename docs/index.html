@@ -9,47 +9,52 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0d0d10; --surface: #18181f; --border: #2a2a38;
-      --accent: #8b5cf6; --text: #f1f1f1; --muted: #9191a4;
+      --bg: #ffffff;
+      --text: #111111;
+      --muted: #666666;
+      --accent: #000000;
+      --border: #e5e5e5;
+      --surface: #f9f9f9;
     }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
-    header { max-width: 1000px; margin: 0 auto; padding: 24px; display: flex; align-items: center; justify-content: space-between; }
-    .logo-row { display: flex; align-items: center; gap: 12px; }
-    .logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: white; }
-    header h1 { font-size: 20px; font-weight: 700; }
-    nav a { color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 20px; transition: color 0.2s; }
-    nav a:hover { color: white; }
-    hero { display: block; text-align: center; padding: 80px 24px 60px; max-width: 1000px; margin: 0 auto; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); color: #c4b5fd; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; margin-bottom: 28px; }
-    .hero h2 { font-size: clamp(32px, 8vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; background: linear-gradient(135deg, #fff 30%, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero p { font-size: 18px; color: var(--muted); max-width: 520px; margin: 0 auto 40px; line-height: 1.7; }
-    .cta { display: inline-flex; align-items: center; gap: 10px; background: var(--accent); color: white; padding: 14px 32px; border-radius: 16px; font-size: 16px; font-weight: 600; text-decoration: none; transition: transform 0.2s, opacity 0.2s; }
-    .cta:hover { opacity: 0.9; transform: translateY(-2px); }
-    .features { max-width: 1000px; margin: 40px auto; padding: 0 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-    .feat { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 32px; transition: border-color 0.3s; }
-    .feat:hover { border-color: var(--accent); }
-    .feat .icon { font-size: 32px; margin-bottom: 20px; }
-    .feat h3 { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    header { max-width: 1100px; margin: 0 auto; padding: 32px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo-row { display: flex; align-items: center; gap: 10px; }
+    .logo { width: 32px; height: 32px; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; border-radius: 4px; }
+    header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    nav a { color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500; margin-left: 24px; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+    nav a:hover { border-color: #000; }
+    
+    hero { display: block; max-width: 1100px; margin: 0 auto; padding: 100px 24px 80px; }
+    .hero-badge { display: inline-block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 20px; border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; }
+    .hero h2 { font-size: clamp(40px, 8vw, 72px); font-weight: 850; line-height: 0.95; letter-spacing: -3px; margin-bottom: 32px; color: #000; }
+    .hero p { font-size: 20px; color: var(--muted); max-width: 600px; line-height: 1.5; margin-bottom: 48px; font-weight: 400; }
+    .cta { display: inline-flex; align-items: center; gap: 12px; background: #000; color: #fff; padding: 18px 36px; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none; transition: transform 0.1s; }
+    .cta:hover { transform: scale(1.02); }
+    
+    .features { max-width: 1100px; margin: 0 auto 100px; padding: 0 24px; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); }
+    .feat { padding: 48px 24px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+    .feat:nth-child(3n) { border-right: none; }
+    .feat .icon { font-size: 24px; margin-bottom: 24px; filter: grayscale(1); }
+    .feat h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.3px; }
     .feat p { color: var(--muted); font-size: 15px; line-height: 1.6; }
-    .links { text-align: center; padding: 60px 24px; }
-    .links a { color: var(--muted); text-decoration: none; font-size: 14px; margin: 0 16px; border-bottom: 1px solid transparent; padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
-    .links a:hover { color: white; border-color: var(--accent); }
-    footer { text-align: center; color: var(--muted); font-size: 13px; padding: 40px 24px; border-top: 1px solid var(--border); }
+    
+    .links { text-align: left; max-width: 1100px; margin: 0 auto; padding: 80px 24px; border-top: 1px solid var(--border); }
+    .links a { color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 32px; }
+    footer { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; color: var(--muted); font-size: 14px; }
 
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-      header { padding: 20px; }
-      hero { padding: 60px 20px 40px; }
-      .hero p { font-size: 16px; }
-      .features { grid-template-columns: 1fr; gap: 16px; }
-      .feat { padding: 24px; }
-      .links a { display: block; margin: 12px 0; }
+    @media (max-width: 900px) {
+      .features { grid-template-columns: repeat(2, 1fr); }
+      .feat:nth-child(2n) { border-right: none; }
+      .feat:nth-child(3n) { border-right: 1px solid var(--border); }
     }
 
-    @media (max-width: 480px) {
-      .hero h2 { font-size: 36px; }
-      .hero-badge { font-size: 11px; padding: 4px 12px; }
+    @media (max-width: 600px) {
+      hero { padding: 60px 24px; }
+      .hero h2 { font-size: 48px; letter-spacing: -1.5px; }
+      .features { grid-template-columns: 1fr; }
+      .feat { border-right: none !important; padding: 40px 0; }
       .cta { width: 100%; justify-content: center; }
+      .links a { display: block; margin-bottom: 16px; }
     }
   </style>
 </head>
@@ -66,11 +71,11 @@
   </header>
 
   <hero>
-    <div style="text-align:center; padding: 80px 24px 60px;">
-      <div class="hero-badge">✨ 100% Private &nbsp;·&nbsp; No Accounts &nbsp;·&nbsp; No Servers</div>
-      <div class="hero h2" style="font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; background: linear-gradient(135deg, #fff 30%, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Notes that remember.<br/>An AI that never forgets.</div>
-      <p style="font-size: 18px; color: var(--muted); max-width: 520px; margin: 0 auto 40px; line-height: 1.7;">Recall is an AI-powered notes app that runs entirely on your device. Ask questions about your notes, search instantly, and keep everything private.</p>
-      <a class="cta" href="recall.zip">Download APK (v1.0) →</a>
+    <div class="hero-badge">A private, offline memory bank.</div>
+    <div class="hero">
+      <h2>Recall your<br/>entire life.</h2>
+      <p>A simple notes app that runs entirely on your device. Search instantly, ask questions, and keep your data where it belongs—with you.</p>
+      <a class="cta" href="recall.zip">Download APK (v1.0)</a>
     </div>
   </hero>
 
