@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":feature:reminders"))
     implementation(project(":feature:onboarding"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:widget"))
 
     // ── Core modules ────────────────────────────────────────────────
     implementation(project(":core:data"))

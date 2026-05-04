@@ -42,7 +42,8 @@ fun NotesListScreen(
     onNavigateToEditor: () -> Unit,
     onNavigateToEditNote: (noteId: String) -> Unit,
     onNavigateToAskRecall: () -> Unit,
-    onNavigateToReminders: () -> Unit
+    onNavigateToReminders: () -> Unit,
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val notes by viewModel.allNotes.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
@@ -89,6 +90,12 @@ fun NotesListScreen(
                     onClick = onNavigateToAskRecall,
                     icon = { Text("✨") },
                     label = { Text("Ask Recall", fontSize = 12.sp) }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onNavigateToSettings,
+                    icon = { Text("⚙️") },
+                    label = { Text("Settings", fontSize = 12.sp) }
                 )
             }
         }

@@ -3,145 +3,143 @@ package com.recall.app.feature.onboarding
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recall.app.core.ui.theme.Accent
+import com.recall.app.core.ui.theme.Background
+import com.recall.app.core.ui.theme.Surface
 import com.recall.app.core.ui.theme.TextMuted
 
 private data class OnboardingPage(
-    val emoji: String,
-    val title: String,
-    val subtitle: String,
-    val gradient: List<Color>
+    val headline: String,
+    val subheadline: String,
+    val buttonLabel: String,
+    val visual: String
 )
 
 private val pages = listOf(
     OnboardingPage(
-        emoji = "📝",
-        title = "Remember Everything",
-        subtitle = "Capture ideas, thoughts, and knowledge. Recall keeps every detail safe and searchable.",
-        gradient = listOf(Color(0xFF1a0533), Color(0xFF0d0d10))
+        headline = "Notes that never forget.",
+        subheadline = "Recall",
+        buttonLabel = "Next",
+        visual = "📝"
     ),
     OnboardingPage(
-        emoji = "🔒",
-        title = "Private by Design",
-        subtitle = "Your notes never leave your phone. No cloud, no accounts, no surveillance. Ever.",
-        gradient = listOf(Color(0xFF003322), Color(0xFF0d0d10))
+        headline = "Your AI remembers everything.",
+        subheadline = "Ask anything you've ever written — months or years later — and get a direct, cited answer instantly.",
+        buttonLabel = "Next",
+        visual = "✨"
     ),
     OnboardingPage(
-        emoji = "✨",
-        title = "Ask Anything",
-        subtitle = "A powerful AI lives entirely on your device. Ask questions about your notes, get instant answers.",
-        gradient = listOf(Color(0xFF1a1533), Color(0xFF0d0d10))
+        headline = "No account needed.\nEverything stays on your device.",
+        subheadline = "100% offline · 100% private · Always free",
+        buttonLabel = "Get Started",
+        visual = "🔒"
     )
 )
 
 @Composable
 fun OnboardingScreen(onComplete: () -> Unit) {
-    var currentPage by remember { mutableStateOf(0) }
+    var currentPage by remember { mutableIntStateOf(0) }
     val page = pages[currentPage]
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(com.recall.app.core.ui.theme.Background)
+            .background(Background)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Big emoji
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(RoundedCornerShape(32.dp))
-                    .background(Color.White.copy(alpha = 0.08f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(page.emoji, fontSize = 56.sp)
-            }
 
-            Spacer(modifier = Modifier.height(40.dp))
-
+            // Visual
             AnimatedContent(
                 targetState = currentPage,
-                transitionSpec = {
-                    fadeIn() togetherWith fadeOut()
-                }
-            ) { _ ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        page.title,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 34.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        page.subtitle,
-                        fontSize = 16.sp,
-                        color = TextMuted,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 24.sp
-                    )
+                transitionSpec = { fadeIn(initialAlpha = 0f) togetherWith fadeOut() },
+                label = "visual"
+            ) { idx ->
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .background(Surface, RoundedCornerShape(32.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(pages[idx].visual, fontSize = 56.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(Modifier.height(48.dp))
 
-            // Dots indicator
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                pages.indices.forEach { index ->
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(
-                                if (index == currentPage) Accent else Color.White.copy(alpha = 0.2f)
-                            )
-                            .size(if (index == currentPage) 24.dp else 8.dp, 8.dp)
-                    )
-                }
+            // Wordmark on screen 1
+            if (currentPage == 0) {
+                Text(
+                    "Recall",
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    letterSpacing = (-1).sp
+                )
+                Spacer(Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            // Headline
+            AnimatedContent(
+                targetState = currentPage,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "headline"
+            ) { idx ->
+                Text(
+                    pages[idx].headline,
+                    fontSize = if (idx == 0) 22.sp else 26.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 34.sp
+                )
+            }
 
-            // Next / Get Started button
+            Spacer(Modifier.height(16.dp))
+
+            // Subheadline
+            AnimatedContent(
+                targetState = currentPage,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "sub"
+            ) { idx ->
+                Text(
+                    pages[idx].subheadline,
+                    fontSize = 15.sp,
+                    color = TextMuted,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+            }
+
+            Spacer(Modifier.height(64.dp))
+
+            // CTA button
             Button(
                 onClick = {
-                    if (currentPage < pages.size - 1) {
-                        currentPage++
-                    } else {
-                        onComplete()
-                    }
+                    if (currentPage < pages.size - 1) currentPage++
+                    else onComplete()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Accent),
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
+                modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text(
-                    if (currentPage < pages.size - 1) "Continue →" else "Get Started",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Text(page.buttonLabel, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }

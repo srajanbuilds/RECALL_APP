@@ -1,4 +1,62 @@
 <resources>
     <string name="app_name">Recall</string>
     <string name="app_description">AI-powered notes that remember everything, privately on your device.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_headline_1">Notes that never forget.</string>
+    <string name="onboarding_headline_2">Your AI remembers everything.</string>
+    <string name="onboarding_headline_3">No account needed.\nEverything stays on your device.</string>
+    <string name="onboarding_sub_3">100% offline · 100% private · Always free</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get Started</string>
+
+    <!-- Notes -->
+    <string name="note_title_hint">Title</string>
+    <string name="note_body_hint">Start typing…</string>
+    <string name="note_saved">Saved</string>
+    <string name="note_draft">Draft</string>
+    <string name="note_private">Private</string>
+    <string name="note_editing">Editing</string>
+    <string name="note_delete_title">Delete note?</string>
+    <string name="note_delete_body">This note will be permanently deleted.</string>
+    <string name="note_delete_confirm">Delete</string>
+    <string name="note_delete_cancel">Cancel</string>
+    <string name="note_save_error">Couldn\'t save. Tap to retry.</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search notes…</string>
+    <string name="search_empty">No matching notes</string>
+
+    <!-- AI -->
+    <string name="ai_greeting">Hi! I\'m Recall AI. Ask me anything about your notes. Everything stays on your device. 🔒</string>
+    <string name="ai_not_found">I couldn\'t find anything about that in your notes.</string>
+    <string name="ai_too_slow">That took too long. Try a shorter question.</string>
+    <string name="ai_unavailable">AI is unavailable. Restart the app.</string>
+    <string name="ai_input_hint">Ask about your notes…</string>
+    <string name="ai_ephemeral">This chat clears when you close it</string>
+
+    <!-- Reminders -->
+    <string name="reminder_set_prompt">Set a reminder for %1$s?</string>
+    <string name="reminder_set_action">Set</string>
+    <string name="reminder_set_confirm">Reminder set ✓</string>
+    <string name="reminder_empty">No reminders yet</string>
+    <string name="reminder_add_hint">Tap + to set a reminder</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_biometric">Biometric Lock</string>
+    <string name="settings_biometric_sub">Locks after 30s in background</string>
+    <string name="settings_export">Export</string>
+    <string name="settings_import">Import</string>
+    <string name="settings_export_title">Set export passphrase</string>
+    <string name="settings_import_title">Enter passphrase</string>
+    <string name="settings_wrong_passphrase">Wrong passphrase. No data was changed.</string>
+    <string name="settings_corrupt_file">This file appears damaged. Export a fresh backup.</string>
+
+    <!-- Widget -->
+    <string name="widget_label">Recall</string>
+    <string name="widget_capture_hint">Capture a thought…</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Something went wrong. Please try again.</string>
 </resources>

@@ -13,6 +13,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY is_pinned DESC, updated_at DESC")
     fun getAllNotes(): Flow<List<Note>>
 
+    @Query("SELECT * FROM notes ORDER BY is_pinned DESC, updated_at DESC")
+    suspend fun getAllNotesOnce(): List<Note>
+
     @Query("SELECT * FROM notes WHERE id = :noteId")
     suspend fun getNoteById(noteId: String): Note?
 
@@ -54,6 +57,9 @@ interface NoteDao {
     // ── Reminders ─────────────────────────────────────────────────────
     @Query("SELECT * FROM reminders ORDER BY trigger_at ASC")
     fun getAllReminders(): Flow<List<Reminder>>
+
+    @Query("SELECT * FROM reminders WHERE is_completed = 0 ORDER BY trigger_at ASC")
+    suspend fun getAllRemindersOnce(): List<Reminder>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReminder(reminder: Reminder)

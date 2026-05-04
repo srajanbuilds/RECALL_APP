@@ -80,16 +80,21 @@ fun RecallApp(appPreferences: AppPreferences) {
                 onNavigateToEditor = { navController.navigate("editor/new") },
                 onNavigateToEditNote = { noteId -> navController.navigate("editor/$noteId") },
                 onNavigateToAskRecall = { navController.navigate("ask_recall") },
-                onNavigateToReminders = { navController.navigate("reminders") }
+                onNavigateToReminders = { navController.navigate("reminders") },
+                onNavigateToSettings = { navController.navigate("settings") }
             )
         }
 
         composable("editor/{noteId}") { back ->
             val rawId = back.arguments?.getString("noteId") ?: "new"
+            val ctx = navController.context
             NoteEditorScreen(
                 viewModel = notesViewModel,
                 noteId = if (rawId == "new") null else rawId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onScheduleReminder = { remId, triggerAtMs, label ->
+                    com.recall.app.feature.reminders.scheduleReminder(ctx, remId, triggerAtMs, label)
+                }
             )
         }
 
