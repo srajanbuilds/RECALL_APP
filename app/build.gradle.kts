@@ -1,3 +1,4 @@
+// :app — thin entry point: MainActivity, RecallApplication, NavHost, root Hilt component
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -16,7 +17,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
     }
@@ -40,51 +40,42 @@ android {
 }
 
 dependencies {
-    // ── AndroidX Core ──────────────────────────────────────────────
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
-    implementation("androidx.activity:activity-compose:1.9.0")
+    // ── Feature modules ─────────────────────────────────────────────
+    implementation(project(":feature:notes"))
+    implementation(project(":feature:ai"))
+    implementation(project(":feature:reminders"))
+    implementation(project(":feature:onboarding"))
+    implementation(project(":feature:settings"))
 
-    // ── Compose ────────────────────────────────────────────────────
-    implementation(platform("androidx.compose:compose-bom:2024.05.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    // ── Core modules ────────────────────────────────────────────────
+    implementation(project(":core:data"))
+    implementation(project(":core:prefs"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:common"))
 
-    // ── Hilt (DI) ──────────────────────────────────────────────────
+    // ── Hilt root (app must declare @HiltAndroidApp) ─────────────────
     implementation("com.google.dagger:hilt-android:2.51")
     ksp("com.google.dagger:hilt-android-compiler:2.51")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 
-    // ── Room (SQLite + FTS4) ───────────────────────────────────────
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    // ── AndroidX essentials for MainActivity ─────────────────────────
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation(platform("androidx.compose:compose-bom:2024.05.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // ── DataStore (replaces SharedPreferences) ─────────────────────
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-
-    // ── WorkManager ────────────────────────────────────────────────
+    // ── WorkManager (root app must initialise it) ────────────────────
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    // ── Security ───────────────────────────────────────────────────
+    // ── Security ────────────────────────────────────────────────────
     implementation("androidx.security:security-crypto:1.0.0")
-    implementation("androidx.biometric:biometric:1.1.0")
 
-    // ── AI — ONNX Runtime (MiniLM embeddings, ~22 MB bundled) ─────
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
-
-    // ── AI — MediaPipe LLM Inference (Gemma/TinyLlama/Qwen2) ──────
-    implementation("com.google.mediapipe:tasks-genai:0.10.14")
-
-    // ── Serialization ──────────────────────────────────────────────
+    // ── Serialization ───────────────────────────────────────────────
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }

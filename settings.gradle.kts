@@ -13,4 +13,21 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Recall"
+
+// App entry point
 include(":app")
+
+// Core modules (bottom of dependency graph)
+include(":core:common")
+include(":core:domain")
+include(":core:data")
+include(":core:prefs")
+include(":core:ui")
+include(":core:ai-engine")
+
+// Feature modules
+include(":feature:notes")
+include(":feature:ai")
+include(":feature:reminders")
+include(":feature:onboarding")
+include(":feature:settings")
