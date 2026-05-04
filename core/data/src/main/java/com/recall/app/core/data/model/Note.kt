@@ -6,6 +6,16 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
+/**
+ * Represents a single user note within the application.
+ *
+ * This entity holds the core text content along with metadata such as
+ * tags, folder association, and privacy settings. Private notes are strictly
+ * excluded from semantic AI indexing and local backups.
+ *
+ * @property isPrivate If true, this note is excluded from vector embeddings, FTS search for AI context, and exports.
+ * @property isAiIndexed Flags whether the background worker has successfully generated vector embeddings for this note.
+ */
 @Entity(
     tableName = "notes",
     indices = [

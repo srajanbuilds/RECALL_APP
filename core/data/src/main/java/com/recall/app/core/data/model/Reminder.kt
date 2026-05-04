@@ -7,6 +7,15 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
+/**
+ * Represents a scheduled alarm or reminder associated with a specific note.
+ *
+ * Reminders are scheduled via Android's AlarmManager. If the parent note is deleted,
+ * its associated reminders are cascaded and deleted automatically by Room.
+ *
+ * @property triggerAt The Unix timestamp (in milliseconds) when the reminder should fire.
+ * @property isCompleted Indicates if the user has dismissed or completed this reminder.
+ */
 @Entity(
     tableName = "reminders",
     foreignKeys = [

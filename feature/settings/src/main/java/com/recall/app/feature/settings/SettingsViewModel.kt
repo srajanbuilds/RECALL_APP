@@ -15,11 +15,20 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel managing the user's application preferences and data lifecycle.
+ *
+ * This class handles toggling biometric authentication via DataStore preferences,
+ * and orchestrates the offline-first encrypted export/import of all non-private
+ * notes and reminders.
+ */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val dao: NoteDao,
     private val prefs: AppPreferences
 ) : ViewModel() {
+
+    // ── State ─────────────────────────────────────────────────────────
 
     var biometricEnabled by mutableStateOf(false)
         private set
@@ -29,6 +38,8 @@ class SettingsViewModel @Inject constructor(
             prefs.isBiometricEnabled.collect { biometricEnabled = it }
         }
     }
+
+    // ── Intent ────────────────────────────────────────────────────────
 
     fun toggleBiometric(enabled: Boolean) {
         viewModelScope.launch {

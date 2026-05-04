@@ -8,8 +8,13 @@ import ai.onnxruntime.OrtSession
 import kotlin.math.sqrt
 
 /**
- * Wraps the all-MiniLM-L6-v2 ONNX model for on-device sentence embeddings.
- * Model file expected at: assets/all-MiniLM-L6-v2.onnx (~22 MB)
+ * A local inference engine wrapping the ONNX implementation of sentence-transformers
+ * (specifically `all-MiniLM-L6-v2`) to generate 384-dimensional dense vector embeddings.
+ *
+ * This class runs entirely offline, leveraging `ai.onnxruntime` to process text chunks.
+ * The model file must be bundled in the APK at `assets/all-MiniLM-L6-v2.onnx`.
+ *
+ * @param context The application context required to load the model asset.
  */
 class EmbeddingEngine(private val context: Context) {
 
@@ -34,7 +39,16 @@ class EmbeddingEngine(private val context: Context) {
         }
     }
 
-    /** Returns a 384-dimensional embedding for the given text. */
+    /**
+     * Generates a dense 384-dimensional vector embedding for the provided text.
+     *
+     * The input text is tokenized, clamped to a maximum of 512 tokens, and fed through
+     * the ONNX session. The output tensor's last hidden state is mean-pooled and
+     * L2-normalized to produce the final embedding.
+     *
+     * @param text The string to vectorize.
+     * @return A normalized float array of size 384 representing the semantic embedding.
+     */
     fun generateEmbedding(text: String): FloatArray {
         val s = session ?: return FloatArray(384)
         return try {
@@ -67,7 +81,18 @@ class EmbeddingEngine(private val context: Context) {
         }
     }
 
-    /** Splits text into overlapping chunks of ~200 tokens each. */
+    /**
+     * Splits a large body of text into overlapping contiguous chunks.
+     *
+     * Semantic models perform best on paragraph-sized inputs. This function slices
+     * text iteratively, ensuring a slight overlap between chunks so that context
+     * across boundaries is not lost.
+     *
+     * @param text The full document text.
+     * @param chunkSize The maximum character length of a single chunk (default 900).
+     * @param overlap The character overlap between consecutive chunks (default 90).
+     * @return A list of overlapping text chunks.
+     */
     fun chunkText(text: String, chunkSize: Int = 900, overlap: Int = 90): List<String> {
         if (text.isBlank()) return emptyList()
         if (text.length <= chunkSize) return listOf(text)
@@ -99,8 +124,12 @@ class EmbeddingEngine(private val context: Context) {
 
     companion object {
         /**
-         * Exact cosine similarity as specified in Section 6.
-         * Both vectors must have length 384.
+         * Calculates the exact cosine similarity between two vectors.
+         * Both vectors must be of the same dimension (384).
+         *
+         * @param a The first embedding vector.
+         * @param b The second embedding vector.
+         * @return A float between -1.0 and 1.0, where 1.0 indicates perfect semantic similarity.
          */
         fun cosineSimilarity(a: FloatArray, b: FloatArray): Float {
             var dot = 0f; var normA = 0f; var normB = 0f

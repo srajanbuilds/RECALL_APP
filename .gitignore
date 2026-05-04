@@ -16,3 +16,7 @@ local.properties
 
 # All module build outputs
 **/build/
+
+# Signing files
+*.keystore
+*.jks

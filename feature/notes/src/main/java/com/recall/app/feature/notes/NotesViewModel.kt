@@ -16,6 +16,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel managing the state and business logic for the notes feature.
+ *
+ * This class handles fetching notes from the local database, performing text
+ * searches, and orchestrating the creation/deletion of notes. It also triggers
+ * the background AI indexing process via [IndexNoteWorker].
+ *
+ * @property allNotes A reactive flow emitting the complete list of notes, ordered by pinned status and recency.
+ * @property searchResults A reactive flow emitting notes that match the current search query.
+ */
 @HiltViewModel
 class NotesViewModel @Inject constructor(
     application: Application,
@@ -23,12 +33,20 @@ class NotesViewModel @Inject constructor(
     private val embeddingEngine: EmbeddingEngine
 ) : AndroidViewModel(application) {
 
+    // ── State ─────────────────────────────────────────────────────────
+
     val allNotes: StateFlow<List<Note>> = dao.getAllNotes()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _searchResults = MutableStateFlow<List<Note>>(emptyList())
     val searchResults: StateFlow<List<Note>> = _searchResults
 
+    // ── Intent ────────────────────────────────────────────────────────
+
+    /**
+     * Executes a full-text search across all notes.
+     * Updates the [searchResults] state flow.
+     */
     fun search(query: String) {
         viewModelScope.launch {
             _searchResults.value = if (query.isBlank()) emptyList()
@@ -43,7 +61,10 @@ class NotesViewModel @Inject constructor(
         }
     }
 
-    /** Used by AI chat for real note context (FTS4 RAG retrieval). */
+    /**
+     * Used by the AI chat engine to retrieve relevant notes as context (RAG).
+     * Private notes are strictly filtered out to prevent data leakage into AI prompts.
+     */
     suspend fun searchForContext(query: String): List<Note> =
         try { dao.searchNotes("$query*").filter { !it.isPrivate }.take(5) }
         catch (e: Exception) {
@@ -55,6 +76,10 @@ class NotesViewModel @Inject constructor(
             }.take(5)
         }
 
+    /**
+     * Upserts a note to the local database. If the note is not private,
+     * it also enqueues an AI background indexing job.
+     */
     fun saveNote(title: String, content: String, noteId: String? = null, isPrivate: Boolean = false) {
         viewModelScope.launch {
             val existing = noteId?.let { id -> allNotes.value.find { it.id == id } }

@@ -18,6 +18,14 @@ const val CHANNEL_ID = "recall_reminders"
 const val EXTRA_REMINDER_LABEL = "reminder_label"
 const val EXTRA_REMINDER_ID = "reminder_id"
 
+/**
+ * BroadcastReceiver responsible for catching scheduled alarms and device boot events.
+ *
+ * When an alarm triggers, it displays a high-priority system notification.
+ * Upon device reboot, it queries the local database and reconstructs all pending
+ * alarms using `AlarmManager`, ensuring reminders survive device restarts without
+ * relying on an ongoing background service.
+ */
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
@@ -81,6 +89,15 @@ class ReminderReceiver : BroadcastReceiver() {
     }
 }
 
+// ── Global Alarm Utilities ───────────────────────────────────────────────────
+
+/**
+ * Schedules a precise alarm for a given timestamp.
+ *
+ * Attempts to use `setExactAndAllowWhileIdle` for Doze mode compliance.
+ * If the exact alarm permission is denied (e.g. Android 12+), gracefully falls
+ * back to an inexact alarm rather than crashing.
+ */
 fun scheduleReminder(context: Context, reminderId: String, triggerAtMs: Long, label: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, ReminderReceiver::class.java).apply {
@@ -107,6 +124,9 @@ fun scheduleReminder(context: Context, reminderId: String, triggerAtMs: Long, la
     }
 }
 
+/**
+ * Cancels a previously scheduled alarm matching the exact reminder ID.
+ */
 fun cancelReminder(context: Context, reminderId: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, ReminderReceiver::class.java)

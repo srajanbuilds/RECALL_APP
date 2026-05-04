@@ -18,9 +18,13 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * AES-256-GCM encrypted export/import per spec Section 7.
- * Key derivation: PBKDF2WithHmacSHA256, 310,000 iterations, random 16-byte salt.
- * File format: [16-byte salt][12-byte IV][ciphertext+GCM tag]
+ * Utility responsible for the secure, offline backup and restoration of user data.
+ *
+ * Implements AES-256-GCM encryption as mandated by Section 7 of the spec.
+ * Key derivation uses PBKDF2WithHmacSHA256 with 310,000 iterations and a 16-byte random salt.
+ * The exported binary format strictly follows: `[16-byte salt][12-byte IV][ciphertext + GCM tag]`.
+ *
+ * **Privacy Guarantee:** Private notes are stripped out by the ViewModel prior to reaching this manager.
  */
 object ExportManager {
 

@@ -11,17 +11,32 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Represents a single message in the AI chat history.
+ *
+ * @property role "user" for the user's prompt, "assistant" for the AI's response.
+ * @property content The main text of the message.
+ * @property citations A list of note titles that were used as context for the assistant's response.
+ */
 data class AiMessage(
     val role: String,   // "user" | "assistant"
     val content: String,
     val citations: List<String> = emptyList()
 )
 
+/**
+ * ViewModel for the "Ask Recall" AI chat interface.
+ *
+ * This class handles sending user prompts, performing Retrieval-Augmented Generation (RAG)
+ * against the local note database, and managing the ephemeral chat history.
+ */
 @HiltViewModel
 class AiViewModel @Inject constructor(
     application: Application,
     private val dao: NoteDao
 ) : AndroidViewModel(application) {
+
+    // ── State ─────────────────────────────────────────────────────────
 
     private val _messages = MutableStateFlow<List<AiMessage>>(emptyList())
     val messages: StateFlow<List<AiMessage>> = _messages
@@ -29,11 +44,19 @@ class AiViewModel @Inject constructor(
     private val _isThinking = MutableStateFlow(false)
     val isThinking: StateFlow<Boolean> = _isThinking
 
+    // ── Business Logic ────────────────────────────────────────────────
+
+
+
     /** Retrieve up to 5 non-private notes matching the query for RAG context. */
     suspend fun searchForContext(query: String): List<Note> =
         try { dao.searchNotes("$query*").filter { !it.isPrivate }.take(5) }
         catch (e: Exception) { emptyList() }
 
+    /**
+     * Processes a user's prompt by adding it to the chat, retrieving relevant note context,
+     * and generating an AI response based strictly on that context.
+     */
     fun sendMessage(userText: String) {
         if (userText.isBlank()) return
         viewModelScope.launch {
@@ -71,5 +94,9 @@ class AiViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Clears the current chat session. Since this chat is ephemeral by design,
+     * this simply resets the state flow to an empty list.
+     */
     fun clearSession() { _messages.value = emptyList() }
 }
