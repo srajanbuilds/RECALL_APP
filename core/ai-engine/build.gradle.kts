@@ -24,8 +24,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
-    // ONNX Runtime — bundled MiniLM model
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
+    // ONNX Runtime removed for safe core rewrite
 
     // MediaPipe LLM Inference (removed to prevent libc++_shared.so collision with ONNX)
     // implementation("com.google.mediapipe:tasks-genai:0.10.14")

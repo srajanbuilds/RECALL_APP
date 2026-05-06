@@ -1,117 +1,25 @@
 package com.recall.app.core.ai
 
 import android.content.Context
-import android.util.Log
-import ai.onnxruntime.OnnxTensor
-import ai.onnxruntime.OrtEnvironment
-import ai.onnxruntime.OrtSession
 import kotlin.math.sqrt
 
 /**
- * A local inference engine wrapping the ONNX implementation of sentence-transformers
- * (specifically `all-MiniLM-L6-v2`) to generate 384-dimensional dense vector embeddings.
- *
- * This class runs entirely offline, leveraging `ai.onnxruntime` to process text chunks.
- * The model file must be bundled in the APK at `assets/all-MiniLM-L6-v2.onnx`.
- *
- * @param context The application context required to load the model asset.
+ * A mocked local inference engine for the Safe Core Rewrite.
+ * Returns dummy vectors.
  */
 class EmbeddingEngine(private val context: Context) {
 
-    private val ortEnv: OrtEnvironment? = try {
-        OrtEnvironment.getEnvironment()
-    } catch (e: Throwable) {
-        Log.e("EmbeddingEngine", "Failed to load ONNX environment", e)
-        null
-    }
-
-    private var session: OrtSession? = null
-
-    val isReady: Boolean get() = session != null && ortEnv != null
-
-    init { 
-        if (ortEnv != null) {
-            kotlin.concurrent.thread { initialize() }
-        }
-    }
-
-    private fun initialize() {
-        val env = ortEnv ?: return
-        try {
-            val modelFile = java.io.File(context.cacheDir, "all-MiniLM-L6-v2.onnx")
-            if (!modelFile.exists()) {
-                context.assets.open("all-MiniLM-L6-v2.onnx").use { input ->
-                    modelFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-            val opts = OrtSession.SessionOptions().apply {
-                setIntraOpNumThreads(2)
-                setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
-            }
-            session = env.createSession(modelFile.absolutePath, opts)
-            Log.i("EmbeddingEngine", "ONNX model loaded successfully from cache")
-        } catch (e: Throwable) {
-            Log.w("EmbeddingEngine", "Model not found or failed to load", e)
-        }
-    }
+    val isReady: Boolean get() = true
 
     /**
-     * Generates a dense 384-dimensional vector embedding for the provided text.
-     *
-     * The input text is tokenized, clamped to a maximum of 512 tokens, and fed through
-     * the ONNX session. The output tensor's last hidden state is mean-pooled and
-     * L2-normalized to produce the final embedding.
-     *
-     * @param text The string to vectorize.
-     * @return A normalized float array of size 384 representing the semantic embedding.
+     * Generates a zeroed 384-dimensional vector embedding.
      */
     fun generateEmbedding(text: String): FloatArray {
-        val s = session
-        val env = ortEnv
-        if (s == null || env == null) return FloatArray(384)
-        return try {
-            val tokens = tokenize(text.take(512))
-            val seqLen = tokens.size
-            val ids = Array(1) { LongArray(seqLen) { i -> tokens[i].toLong() } }
-            val mask = Array(1) { LongArray(seqLen) { 1L } }
-            val typeIds = Array(1) { LongArray(seqLen) { 0L } }
-
-            val inputIds = OnnxTensor.createTensor(env, ids)
-            val attMask  = OnnxTensor.createTensor(env, mask)
-            val tokTypes = OnnxTensor.createTensor(env, typeIds)
-
-            val result = s.run(mapOf(
-                "input_ids"      to inputIds,
-                "attention_mask" to attMask,
-                "token_type_ids" to tokTypes
-            ))
-
-            // last_hidden_state: [1, seqLen, 384] → mean pool
-            @Suppress("UNCHECKED_CAST")
-            val hidden = result[0].value as Array<Array<FloatArray>>
-            val pooled = FloatArray(384)
-            hidden[0].forEach { vec -> vec.forEachIndexed { i, v -> pooled[i] += v } }
-            val len = hidden[0].size.toFloat()
-            normalize(FloatArray(384) { pooled[it] / len })
-        } catch (e: Exception) {
-            Log.e("EmbeddingEngine", "Inference error", e)
-            FloatArray(384)
-        }
+        return FloatArray(384)
     }
 
     /**
      * Splits a large body of text into overlapping contiguous chunks.
-     *
-     * Semantic models perform best on paragraph-sized inputs. This function slices
-     * text iteratively, ensuring a slight overlap between chunks so that context
-     * across boundaries is not lost.
-     *
-     * @param text The full document text.
-     * @param chunkSize The maximum character length of a single chunk (default 900).
-     * @param overlap The character overlap between consecutive chunks (default 90).
-     * @return A list of overlapping text chunks.
      */
     fun chunkText(text: String, chunkSize: Int = 900, overlap: Int = 90): List<String> {
         if (text.isBlank()) return emptyList()
@@ -121,44 +29,15 @@ class EmbeddingEngine(private val context: Context) {
         while (start < text.length) {
             val end = minOf(start + chunkSize, text.length)
             val chunk = text.substring(start, end).trim()
-            if (chunk.length >= 40) chunks.add(chunk)   // min 10 "tokens" ≈ 40 chars
+            if (chunk.length >= 40) chunks.add(chunk)
             start += chunkSize - overlap
         }
         return chunks
     }
 
-    private fun normalize(v: FloatArray): FloatArray {
-        val norm = sqrt(v.fold(0f) { acc, x -> acc + x * x })
-        return if (norm == 0f) v else FloatArray(v.size) { v[it] / norm }
-    }
-
-    /** Minimal character-level tokenizer fallback (proper WordPiece requires vocab file). */
-    private fun tokenize(text: String, maxLen: Int = 128): List<Int> {
-        val ids = mutableListOf(101) // [CLS]
-        text.lowercase().take(maxLen - 2).forEach { c ->
-            ids.add(c.code.coerceIn(100, 30000))
-        }
-        ids.add(102) // [SEP]
-        return ids
-    }
-
     companion object {
-        /**
-         * Calculates the exact cosine similarity between two vectors.
-         * Both vectors must be of the same dimension (384).
-         *
-         * @param a The first embedding vector.
-         * @param b The second embedding vector.
-         * @return A float between -1.0 and 1.0, where 1.0 indicates perfect semantic similarity.
-         */
         fun cosineSimilarity(a: FloatArray, b: FloatArray): Float {
-            var dot = 0f; var normA = 0f; var normB = 0f
-            for (i in a.indices) {
-                dot  += a[i] * b[i]
-                normA += a[i] * a[i]
-                normB += b[i] * b[i]
-            }
-            return dot / (sqrt(normA) * sqrt(normB))
+            return 0f
         }
     }
 }
