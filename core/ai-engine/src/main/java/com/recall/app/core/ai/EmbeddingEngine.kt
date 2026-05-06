@@ -23,19 +23,28 @@ class EmbeddingEngine(private val context: Context) {
 
     val isReady: Boolean get() = session != null
 
-    init { initialize() }
+    init { 
+        kotlin.concurrent.thread { initialize() }
+    }
 
     private fun initialize() {
         try {
-            val bytes = context.assets.open("all-MiniLM-L6-v2.onnx").readBytes()
+            val modelFile = java.io.File(context.cacheDir, "all-MiniLM-L6-v2.onnx")
+            if (!modelFile.exists()) {
+                context.assets.open("all-MiniLM-L6-v2.onnx").use { input ->
+                    modelFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
             val opts = OrtSession.SessionOptions().apply {
                 setIntraOpNumThreads(2)
                 setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
             }
-            session = ortEnv.createSession(bytes, opts)
-            Log.i("EmbeddingEngine", "ONNX model loaded successfully")
-        } catch (e: Exception) {
-            Log.w("EmbeddingEngine", "Model not found in assets — embeddings will be zero vectors. Add all-MiniLM-L6-v2.onnx to app/src/main/assets/")
+            session = ortEnv.createSession(modelFile.absolutePath, opts)
+            Log.i("EmbeddingEngine", "ONNX model loaded successfully from cache")
+        } catch (e: Throwable) {
+            Log.w("EmbeddingEngine", "Model not found or failed to load", e)
         }
     }
 

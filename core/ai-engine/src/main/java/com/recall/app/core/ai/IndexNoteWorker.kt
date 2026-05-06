@@ -31,6 +31,9 @@ import java.util.concurrent.TimeUnit
  * **Security Enforcement:** Notes flagged as `isPrivate` immediately halt the worker.
  * Private notes are guaranteed to never enter the AI vectorization pipeline.
  */
+import androidx.hilt.work.HiltWorker
+
+@HiltWorker
 class IndexNoteWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters

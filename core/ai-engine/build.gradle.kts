@@ -27,8 +27,8 @@ dependencies {
     // ONNX Runtime — bundled MiniLM model
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
 
-    // MediaPipe LLM Inference
-    implementation("com.google.mediapipe:tasks-genai:0.10.14")
+    // MediaPipe LLM Inference (removed to prevent libc++_shared.so collision with ONNX)
+    // implementation("com.google.mediapipe:tasks-genai:0.10.14")
 
     // WorkManager for IndexNoteWorker
     implementation("androidx.work:work-runtime-ktx:2.9.0")

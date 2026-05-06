@@ -7,12 +7,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
+import androidx.hilt.work.HiltWorker
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+
 /**
  * Refreshes all Recall widgets every 30 minutes via WorkManager.
  */
-class WidgetRefreshWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class WidgetRefreshWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.Main) {
