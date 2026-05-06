@@ -5,11 +5,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -32,6 +34,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import androidx.core.app.ActivityCompat
+import java.io.File
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -40,10 +43,35 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val crashFile = File(cacheDir, "crash.txt")
+        val crashLog = if (crashFile.exists()) crashFile.readText() else null
+
         setContent {
             RecallTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    RecallApp(appPreferences)
+                    if (crashLog != null) {
+                        androidx.compose.foundation.lazy.LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            item {
+                                androidx.compose.material3.Text(
+                                    text = "App Crashed Previous Session:\n\n$crashLog",
+                                    color = androidx.compose.ui.graphics.Color.Red,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                                androidx.compose.material3.Button(
+                                    onClick = { 
+                                        crashFile.delete() 
+                                        finish() 
+                                    },
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    androidx.compose.material3.Text("Clear Log & Restart")
+                                }
+                            }
+                        }
+                    } else {
+                        RecallApp(appPreferences)
+                    }
                 }
             }
         }
