@@ -1,9 +1,7 @@
-// :app — thin entry point: MainActivity, RecallApplication, NavHost, root Hilt component
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
@@ -15,13 +13,10 @@ android {
         applicationId = "com.recall.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
-        ndk {
-            abiFilters.add("arm64-v8a")
-        }
     }
 
     signingConfigs {
@@ -54,43 +49,23 @@ android {
 }
 
 dependencies {
-    // ── Feature modules ─────────────────────────────────────────────
-    implementation(project(":feature:notes"))
-    implementation(project(":feature:ai"))
-    implementation(project(":feature:reminders"))
-    implementation(project(":feature:onboarding"))
-    implementation(project(":feature:settings"))
-    implementation(project(":feature:widget"))
-
-    // ── Core modules ────────────────────────────────────────────────
-    implementation(project(":core:data"))
-    implementation(project(":core:prefs"))
-    implementation(project(":core:ui"))
-    implementation(project(":core:common"))
-
-    // ── Hilt root (app must declare @HiltAndroidApp) ─────────────────
-    implementation("com.google.dagger:hilt-android:2.51")
-    ksp("com.google.dagger:hilt-android-compiler:2.51")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.hilt:hilt-work:1.2.0")
-    ksp("androidx.hilt:hilt-compiler:1.2.0")
-
-    // ── AndroidX essentials for MainActivity ─────────────────────────
+    // ── AndroidX Essentials ─────────────────────────
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation(platform("androidx.compose:compose-bom:2024.05.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // ── WorkManager (root app must initialise it) ────────────────────
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    // ── Room Database ──────────────────────────────
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
 
-    // ── Security ────────────────────────────────────────────────────
-    implementation("androidx.security:security-crypto:1.0.0")
-
-    // ── Serialization ───────────────────────────────────────────────
+    // ── Serialization ───────────────────────────────
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
