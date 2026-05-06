@@ -18,16 +18,25 @@ import kotlin.math.sqrt
  */
 class EmbeddingEngine(private val context: Context) {
 
-    private val ortEnv = OrtEnvironment.getEnvironment()
+    private val ortEnv: OrtEnvironment? = try {
+        OrtEnvironment.getEnvironment()
+    } catch (e: Throwable) {
+        Log.e("EmbeddingEngine", "Failed to load ONNX environment", e)
+        null
+    }
+
     private var session: OrtSession? = null
 
-    val isReady: Boolean get() = session != null
+    val isReady: Boolean get() = session != null && ortEnv != null
 
     init { 
-        kotlin.concurrent.thread { initialize() }
+        if (ortEnv != null) {
+            kotlin.concurrent.thread { initialize() }
+        }
     }
 
     private fun initialize() {
+        val env = ortEnv ?: return
         try {
             val modelFile = java.io.File(context.cacheDir, "all-MiniLM-L6-v2.onnx")
             if (!modelFile.exists()) {
@@ -41,7 +50,7 @@ class EmbeddingEngine(private val context: Context) {
                 setIntraOpNumThreads(2)
                 setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
             }
-            session = ortEnv.createSession(modelFile.absolutePath, opts)
+            session = env.createSession(modelFile.absolutePath, opts)
             Log.i("EmbeddingEngine", "ONNX model loaded successfully from cache")
         } catch (e: Throwable) {
             Log.w("EmbeddingEngine", "Model not found or failed to load", e)
@@ -59,7 +68,9 @@ class EmbeddingEngine(private val context: Context) {
      * @return A normalized float array of size 384 representing the semantic embedding.
      */
     fun generateEmbedding(text: String): FloatArray {
-        val s = session ?: return FloatArray(384)
+        val s = session
+        val env = ortEnv
+        if (s == null || env == null) return FloatArray(384)
         return try {
             val tokens = tokenize(text.take(512))
             val seqLen = tokens.size
@@ -67,9 +78,9 @@ class EmbeddingEngine(private val context: Context) {
             val mask = Array(1) { LongArray(seqLen) { 1L } }
             val typeIds = Array(1) { LongArray(seqLen) { 0L } }
 
-            val inputIds = OnnxTensor.createTensor(ortEnv, ids)
-            val attMask  = OnnxTensor.createTensor(ortEnv, mask)
-            val tokTypes = OnnxTensor.createTensor(ortEnv, typeIds)
+            val inputIds = OnnxTensor.createTensor(env, ids)
+            val attMask  = OnnxTensor.createTensor(env, mask)
+            val tokTypes = OnnxTensor.createTensor(env, typeIds)
 
             val result = s.run(mapOf(
                 "input_ids"      to inputIds,
