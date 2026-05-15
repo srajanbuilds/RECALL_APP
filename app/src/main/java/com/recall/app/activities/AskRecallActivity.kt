@@ -1,5 +1,6 @@
 package com.recall.app.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.ImageButton
@@ -9,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.MaterialToolbar
 import com.recall.app.R
 import com.recall.app.core.ai.AiRepository
+import com.recall.app.core.ai.ModelDownloader
 import com.recall.app.room.NotallyDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,14 +26,21 @@ class AskRecallActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // If models aren't downloaded yet, redirect to the setup screen
+        if (!ModelDownloader.areBothModelsReady(this)) {
+            val intent = Intent(this, ModelSetupActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_ask_recall)
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Ask Recall"
-
-        com.recall.app.core.ai.ModelDownloader.downloadModelsIfMissing(this)
 
         chatHistoryTextView = findViewById(R.id.chatHistoryTextView)
         promptEditText = findViewById(R.id.promptEditText)
@@ -88,7 +97,7 @@ class AskRecallActivity : AppCompatActivity() {
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
-                        chatHistory.append("Error connecting to LLM: ${e.message}")
+                        chatHistory.append("Error: ${e.message}")
                         chatHistoryTextView.text = chatHistory.toString()
                     }
                 }
