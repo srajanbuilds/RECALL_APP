@@ -19,5 +19,6 @@ data class BaseNote(
     val items: List<ListItem>,
     val images: List<Image>,
     val audios: List<Audio>,
-    val reminder: Reminder?
+    val reminder: Reminder?,
+    val embedding: ByteArray? = null
 ) : Item

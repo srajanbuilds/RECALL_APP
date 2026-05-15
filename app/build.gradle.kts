@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
 }
 
 android {
@@ -74,4 +75,9 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.15.1")
     implementation("com.github.rambler-digital-solutions:swipe-layout-android:1.0.17")
     implementation("com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0")
+
+    // AI Dependencies
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.1")
+    implementation("com.google.mediapipe:tasks-genai:0.10.14")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }

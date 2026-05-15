@@ -302,7 +302,18 @@ class NotallyModel(private val app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun saveNote(): Long {
-        return withContext(Dispatchers.IO) { baseNoteDao.insert(getBaseNote()) }
+        return withContext(Dispatchers.IO) { 
+            val note = getBaseNote()
+            // Generate embedding
+            val textToEmbed = "${note.title}\n${note.body}\n${note.items.joinToString("\n") { it.body }}"
+            val embeddingFloatArray = com.recall.app.core.ai.AiRepository.getEmbeddingEngine(app).getEmbedding(textToEmbed)
+            val embeddingByteArray = java.nio.ByteBuffer.allocate(embeddingFloatArray.size * 4).apply {
+                asFloatBuffer().put(embeddingFloatArray)
+            }.array()
+            
+            val noteWithEmbedding = note.copy(embedding = embeddingByteArray)
+            baseNoteDao.insert(noteWithEmbedding) 
+        }
     }
 
     private suspend fun updateImages() {

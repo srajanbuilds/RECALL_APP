@@ -71,6 +71,11 @@
         </activity>
 
         <activity android:name=".activities.ViewImage" />
+        
+        <activity
+            android:name=".activities.AskRecallActivity"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity android:name=".activities.SelectLabels" />
 

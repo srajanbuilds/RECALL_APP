@@ -48,6 +48,22 @@
             app:navGraph="@navigation/navigation" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/AskRecall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/MakeList"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="Ask Recall"
+            android:tooltipText="Ask Recall AI"
+            app:backgroundTint="?attr/colorPrimary"
+            app:elevation="2dp"
+            app:pressedTranslationZ="4dp"
+            app:srcCompat="@drawable/notally_foreground"
+            app:tint="?attr/colorOnPrimary" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/MakeList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -95,6 +95,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, MakeList::class.java)
             startActivity(intent)
         }
+        binding.AskRecall.setOnClickListener {
+            val intent = Intent(this, AskRecallActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun setupMenu() {
@@ -117,6 +121,7 @@ class MainActivity : AppCompatActivity() {
         transition.excludeChildren(binding.NavHostFragment, true)
         transition.excludeTarget(binding.TakeNote, true)
         transition.excludeTarget(binding.MakeList, true)
+        transition.excludeTarget(binding.AskRecall, true)
         transition.excludeTarget(binding.NavigationView, true)
 
         model.actionMode.enabled.observe(this) { enabled ->
@@ -388,9 +393,11 @@ class MainActivity : AppCompatActivity() {
         if (destination.id == R.id.Notes) {
             binding.TakeNote.show()
             binding.MakeList.show()
+            binding.AskRecall.show()
         } else {
             binding.TakeNote.hide()
             binding.MakeList.hide()
+            binding.AskRecall.hide()
         }
 
         val inputManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
